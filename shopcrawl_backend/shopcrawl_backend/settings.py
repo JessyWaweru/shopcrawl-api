@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework', # You should have this for the API
     'api',            # <--- ADD THIS LINE
-    'corsheaders',  # For handling CORS
+    'corsheaders',  
+    'rest_framework.authtoken',
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # For handling CORS
@@ -125,3 +126,27 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+
+
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'authorization',  # <--- You MUST explicitly allow this header
+    'content-type',
+]
+
+# Tell Django to use your custom User model instead of the default one
+AUTH_USER_MODEL = 'api.User'
+
+# Add this to the very bottom of settings.py
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}

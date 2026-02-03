@@ -3,16 +3,11 @@ from .models import Amazon, Jumia, Kilimall, Shopify, Product, User, UserProduct
 
 # ==========================================
 # VENDOR SERIALIZERS
-# These serializers handle the conversion of the specific vendor tables.
 # ==========================================
 
 class AmazonSerializer(serializers.ModelSerializer):
-    # ModelSerializer is a shortcut that automatically creates a serializer 
-    # based on the Model definition (fields, types, etc.)
     class Meta:
         model = Amazon
-        # '__all__' is a magic keyword that tells Django to include 
-        # every single field from the Amazon model in the JSON output.
         fields = '__all__'
 
 class JumiaSerializer(serializers.ModelSerializer):
@@ -31,47 +26,63 @@ class ShopifySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 # ==========================================
-# PRODUCT SERIALIZER
-# This is the main object your API will likely return most often.
+# PRODUCT SERIALIZER (The Translator)
 # ==========================================
 
 class ProductSerializer(serializers.ModelSerializer):
-    # Nested Serialization:
-    # By default, Django would just give you the ID (e.g., "amazon": 1).
-    # By declaring these variables here using the classes we defined above,
-    # the JSON will include the FULL vendor object details nested inside the product.
-    # It mimics Rails' `include: [:amazon, :jumia, ...]`
-    amazon = AmazonSerializer(read_only=True)
-    jumia = JumiaSerializer(read_only=True)
-    kilimall = KilimallSerializer(read_only=True)
-    shopify = ShopifySerializer(read_only=True)
+    # These fields will hold the structured data for the frontend table
+    amazon_data = serializers.SerializerMethodField()
+    jumia_data = serializers.SerializerMethodField()
+    kilimall_data = serializers.SerializerMethodField()
+    shopify_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'description', 'image', 
+            'amazon_data', 'jumia_data', 'kilimall_data', 'shopify_data'
+        ]
+
+    # --- Helper Logic to Map Database Fields to Frontend Names ---
+    def get_vendor_data(self, obj, vendor_name):
+        if hasattr(obj, vendor_name) and getattr(obj, vendor_name):
+            vendor = getattr(obj, vendor_name)
+            return {
+                "price": vendor.price,
+                
+                # TRANSLATION 1: DB 'review' -> Frontend 'rating'
+                "rating": getattr(vendor, 'review', 4.0), 
+                
+                "shipping_cost": getattr(vendor, 'shipping_cost', 0.0),
+                
+                # TRANSLATION 2: DB 'days_to_ship' -> Frontend 'shipping_days'
+                "shipping_days": getattr(vendor, 'days_to_ship', 7),
+                
+                "location": getattr(vendor, 'product_location', "Unknown")
+            }
+        return None
+
+    def get_amazon_data(self, obj): return self.get_vendor_data(obj, 'amazon')
+    def get_jumia_data(self, obj): return self.get_vendor_data(obj, 'jumia')
+    def get_kilimall_data(self, obj): return self.get_vendor_data(obj, 'kilimall')
+    def get_shopify_data(self, obj): return self.get_vendor_data(obj, 'shopify')
 
 # ==========================================
-# USER SERIALIZER
+# USER SERIALIZERS
 # ==========================================
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        # We explicitly list fields here because we might want to exclude 
-        # sensitive data like 'password_digest' in the future.
-        fields = ['id', 'username', 'email', 'age', 'gender', 'admin', 'created_at']
-
-# ==========================================
-# USER PRODUCT (Cart/Wishlist) SERIALIZER
-# ==========================================
+        fields = '__all__'
+        extra_kwargs = {
+            'password': {'write_only': False},
+            'password_digest': {'write_only': False}
+        }
 
 class UserProductSerializer(serializers.ModelSerializer):
-    # This serializer represents the link between a user and a product.
+    product = ProductSerializer()
     
-    # We can use 'depth' to automatically nest related objects.
-    # depth = 1 means "go one level deep and show the actual Product data, 
-    # not just the Product ID".
     class Meta:
         model = UserProduct
-        fields = '__all__'
-        depth = 1
+        fields = ['id', 'user', 'product', 'date_added']

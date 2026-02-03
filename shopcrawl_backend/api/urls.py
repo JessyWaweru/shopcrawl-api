@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AmazonViewSet, JumiaViewSet, KilimallViewSet, ShopifyViewSet, 
     ProductViewSet, UserViewSet, 
-    login_user 
+    login_user, search_history  # <--- IMPORTED search_history
 )
 
 router = DefaultRouter()
@@ -15,11 +15,14 @@ router.register(r'products', ProductViewSet)
 router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    # 1. SPECIFIC ROUTE FIRST (The Fix)
-    # Django will match this first and run the login function.
+    # 1. SPECIFIC ROUTES FIRST
+    # Login Route
     path('login/', login_user, name='login_user'),
 
-    # 2. GENERAL ROUTE SECOND
-    # If it wasn't login, Django assumes it's a router request (products, users, etc.)
+    # Search History Route (New)
+    path('history/', search_history, name='search_history'),
+
+    # 2. GENERAL ROUTE SECOND (The Router)
+    # Handles products, users, vendors, etc.
     path('', include(router.urls)),
 ]

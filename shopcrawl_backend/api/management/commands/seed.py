@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from api.models import User, Amazon, Jumia, Kilimall, Shopify, Product, UserProduct, User
+from api.models import User, Amazon, Jumia, Kilimall, Shopify, Product, UserProduct
 
 class Command(BaseCommand):
     help = 'Seeds the database with initial data'
@@ -18,15 +18,19 @@ class Command(BaseCommand):
         User.objects.all().delete()
 
         # --- Create User ---
-        # Note: mapped 'password' to 'password_digest' to match your model
+        # FIX: Removed 'gender' because it is not in your models.py
         user1 = User.objects.create(
             username='Jessy', 
             email="Jessy@gmail.com", 
-            password_digest='password', 
-            gender='male', 
+            password_digest='password',  # Custom field
             age=20, 
             admin=True
         )
+        # We also set the standard Django password so login works
+        user1.set_password('password')
+        user1.save()
+
+        self.stdout.write('Creating Vendors...')
 
         # --- Create Amazons ---
         amazon1 = Amazon.objects.create(price=5000, shipping_cost=121, days_to_ship=5, review=9, product_location="Westlands")
@@ -155,7 +159,6 @@ class Command(BaseCommand):
         kilimall40 = Kilimall.objects.create(price=655, shipping_cost=53, days_to_ship=3, review=6, product_location="Ngong Road")
 
         # --- Create Jumias ---
-        # Note: Changed 'Jumium' to 'Jumia' to match the Django model
         jumium1 = Jumia.objects.create(price=2140, shipping_cost=754, days_to_ship=4, review=10, product_location="Adams Arcade")
         jumium2 = Jumia.objects.create(price=35000, shipping_cost=253, days_to_ship=4, review=10, product_location="Adams Arcade")
         jumium3 = Jumia.objects.create(price=60000, shipping_cost=253, days_to_ship=4, review=10, product_location="Adams Arcade")
@@ -197,8 +200,9 @@ class Command(BaseCommand):
         jumium39 = Jumia.objects.create(price=1154, shipping_cost=54, days_to_ship=4, review=7, product_location="Adams Arcade")
         jumium40 = Jumia.objects.create(price=1155, shipping_cost=54, days_to_ship=4, review=7, product_location="Adams Arcade")
 
+        self.stdout.write('Creating Products...')
+
         # --- Create Products ---
-        # Note: We pass the ACTUAL OBJECT (amazon1) to the ForeignKey field (amazon), NOT the ID.
         product1 = Product.objects.create(name="ON Shoes", about="Enhance your workout with these On sneakers.", description="Enhance your workout with these On sneakers. They are lightweight and comfortable, with high-quality design and engineering.", image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hvZXN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=600&q=60", amazon=amazon1, kilimall=kilimall1, jumia=jumium1, shopify=shopify1)
         product2 = Product.objects.create(name="Oppo A57", about="The Oppo A57 4G has a fast 2.3 GHz Octa-core processor and 4GB of RAM.", description="The Oppo A57 4G has a fast 2.3 GHz Octa-core processor and 4GB of RAM. It has 64GB of storage that can be expanded with a microSDXC card. The phone runs on Android 12 and has a long-lasting 5000mAh battery that cannot be removed.", image="https://images.unsplash.com/photo-1585060544812-6b45742d762f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjJ8fHBob25lfGVufDB8fDB8fHww&auto=format&fit=crop&w=600&q=60", amazon=amazon2, kilimall=kilimall2, jumia=jumium2, shopify=shopify2)
         product3 = Product.objects.create(name="Samsung 43-Inch BE43T-H Pro TV", about="The Samsung BET-H Series 43-Inch 4K Pro TV is perfect for showcasing captivating content.", description="The Samsung BET-H Series 43-Inch 4K Pro TV is perfect for showcasing captivating content. With its stunning 4K picture quality, customizable options, and vibrant colors, it delivers crystal clear and dynamic visuals. This reliable TV can operate for 16 hours a day, 7 days a week, and has convenient features like an on/off timer. It also offers built-in TV tuners, multiple input ports, YouTube streaming, and the ability to showcase custom content from a smartphone or tablet. With its sleek design and easy installation, it seamlessly integrates into any commercial space.", image="https://images.unsplash.com/photo-1601944179066-29786cb9d32a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8c2Ftc3VuZyUyMHR2fGVufDB8fDB8fHww&auto=format&fit=crop&w=600&q=60", amazon=amazon3, kilimall=kilimall3, jumia=jumium3, shopify=shopify3)

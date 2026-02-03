@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Amazon, Jumia, Kilimall, Shopify, Product, User, UserProduct
@@ -78,37 +80,67 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 # ==========================================
+# SEARCH HISTORY (New Feature)
+# ==========================================
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def search_history(request):
+    user = request.user
+
+    # 1. RETRIEVE HISTORY (GET)
+    if request.method == 'GET':
+        # Get the last 11 items, newest first
+        history = UserProduct.objects.filter(user=user).order_by('-date_added')[:11]
+        serializer = UserProductSerializer(history, many=True)
+        return Response(serializer.data)
+
+    # 2. SAVE TO HISTORY (POST)
+    elif request.method == 'POST':
+        product_id = request.data.get('product_id')
+        
+        if not product_id:
+            return Response({'error': 'Product ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = get_object_or_404(Product, id=product_id)
+
+        # Avoid duplicates: If it's already in history, delete the old one so the new one goes to the top
+        UserProduct.objects.filter(user=user, product=product).delete()
+
+        # Create the new entry
+        UserProduct.objects.create(user=user, product=product)
+        
+        return Response({"message": "Added to history"})
+
+# ==========================================
 # LOGIN FUNCTION (Matches React Frontend)
 # ==========================================
+
+# Add this import at the top
 
 @api_view(['POST'])
 def login_user(request):
     email = request.data.get('email')
     password = request.data.get('password')
 
-    print(f"\n--- DEBUG LOGIN ATTEMPT ---")
-    print(f"Email received:     '{email}'")
-    print(f"Password received:  '{password}'")
-
-    # 1. Find User
     user = User.objects.filter(email=email).first()
 
     if user is None:
-        print("RESULT: User not found in database.")
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    # 2. Get the stored password safely
-    # We use getattr so if the field is missing, it returns None instead of crashing
     db_digest = getattr(user, 'password_digest', None)
-    
-    print(f"User found:         {user.username}")
-    print(f"DB password_digest: '{db_digest}'")
 
-    # 3. Compare them directly
     if db_digest == password:
-        print("RESULT: MATCH! Logging in...")
+        # --- THE FIX: GENERATE TOKEN ---
+        # Get or create a token for this user
+        token, created = Token.objects.get_or_create(user=user)
+        
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        
+        # Return BOTH the user info AND the token
+        return Response({
+            'token': token.key, 
+            'user': serializer.data
+        })
     else:
-        print("RESULT: FAILED. Strings do not match.")
         return Response({'error': 'Invalid Password'}, status=status.HTTP_401_UNAUTHORIZED)
