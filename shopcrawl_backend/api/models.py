@@ -77,7 +77,7 @@ class Product(models.Model):
     about = models.TextField(blank=True, null=True) 
     
     description = models.TextField()
-    image = models.URLField()
+    image = models.TextField()      # <-- Unlimited length (Fixes the error)
     # ... rest of your fields (amazon, jumia, etc) ...
     
     # Relationships to vendors
