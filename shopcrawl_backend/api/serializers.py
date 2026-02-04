@@ -26,41 +26,40 @@ class ShopifySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 # ==========================================
-# 2. PRODUCT SERIALIZER (The Big Logic)
+# 2. PRODUCT SERIALIZER
 # ==========================================
 
 class ProductSerializer(serializers.ModelSerializer):
-    # READ-ONLY DATA
+    # READ-ONLY DATA (Nested Objects for Frontend)
     amazon_data = serializers.SerializerMethodField()
     jumia_data = serializers.SerializerMethodField()
     kilimall_data = serializers.SerializerMethodField()
     shopify_data = serializers.SerializerMethodField()
 
-    # WRITE-ONLY INPUTS
-    # Added "reviews" fields for each vendor
+    # WRITE-ONLY INPUTS (Flat fields for Forms)
     amazon_price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     amazon_shipping = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     amazon_days = serializers.IntegerField(write_only=True, required=False)
     amazon_location = serializers.CharField(write_only=True, required=False)
-    amazon_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False) # NEW
+    amazon_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False)
 
     jumia_price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     jumia_shipping = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     jumia_days = serializers.IntegerField(write_only=True, required=False)
     jumia_location = serializers.CharField(write_only=True, required=False)
-    jumia_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False) # NEW
+    jumia_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False)
 
     kilimall_price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     kilimall_shipping = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     kilimall_days = serializers.IntegerField(write_only=True, required=False)
     kilimall_location = serializers.CharField(write_only=True, required=False)
-    kilimall_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False) # NEW
+    kilimall_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False)
 
     shopify_price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     shopify_shipping = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
     shopify_days = serializers.IntegerField(write_only=True, required=False)
     shopify_location = serializers.CharField(write_only=True, required=False)
-    shopify_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False) # NEW
+    shopify_reviews = serializers.DecimalField(max_digits=3, decimal_places=1, write_only=True, required=False)
 
     class Meta:
         model = Product
@@ -79,7 +78,7 @@ class ProductSerializer(serializers.ModelSerializer):
             vendor = getattr(obj, vendor_name)
             return {
                 "price": vendor.price,
-                "rating": getattr(vendor, 'review', 0.0), # Maps 'review' from DB to 'rating' for frontend
+                "rating": getattr(vendor, 'review', 0.0),
                 "shipping_cost": getattr(vendor, 'shipping_cost', 0.0),
                 "shipping_days": getattr(vendor, 'days_to_ship', 7),
                 "location": getattr(vendor, 'product_location', "Unknown")
@@ -106,7 +105,6 @@ class ProductSerializer(serializers.ModelSerializer):
         if f'{prefix}_location' in validated_data:
             vendor_obj.product_location = validated_data[f'{prefix}_location']
             has_updates = True
-        # NEW: Update Review
         if f'{prefix}_reviews' in validated_data:
             vendor_obj.review = validated_data[f'{prefix}_reviews']
             has_updates = True
@@ -122,7 +120,7 @@ class ProductSerializer(serializers.ModelSerializer):
                 "shipping_cost": validated_data.pop(f'{prefix}_shipping', 0),
                 "days_to_ship": validated_data.pop(f'{prefix}_days', 7),
                 "product_location": validated_data.pop(f'{prefix}_location', 'Warehouse'),
-                "review": validated_data.pop(f'{prefix}_reviews', 0.0) # Extract Review
+                "review": validated_data.pop(f'{prefix}_reviews', 0.0)
             }
 
         a_data = extract_vendor('amazon')
@@ -153,13 +151,12 @@ class ProductSerializer(serializers.ModelSerializer):
             if vendor_instance:
                 self.update_vendor(vendor_instance, validated_data, prefix)
             elif validated_data.get(f'{prefix}_price'):
-                # Create new vendor if price provided
                 new_vendor = model_class.objects.create(
                     price=validated_data.get(f'{prefix}_price'),
                     shipping_cost=validated_data.get(f'{prefix}_shipping', 0),
                     days_to_ship=validated_data.get(f'{prefix}_days', 7),
                     product_location=validated_data.get(f'{prefix}_location', 'Warehouse'),
-                    review=validated_data.get(f'{prefix}_reviews', 0.0) # Save Review
+                    review=validated_data.get(f'{prefix}_reviews', 0.0)
                 )
                 setattr(instance, prefix, new_vendor)
                 instance.save()
@@ -170,18 +167,59 @@ class ProductSerializer(serializers.ModelSerializer):
         handle_vendor_update(instance.shopify, 'shopify', Shopify)
 
         return instance
+
+
 # ==========================================
-# 3. USER SERIALIZERS (MUST BE HERE)
+# 3. USER SERIALIZERS (SECURE VERSION)
 # ==========================================
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'username', 'email', 'password', 'age', 'admin', 'recovery_pin']
         extra_kwargs = {
-            'password': {'write_only': False},
-            'password_digest': {'write_only': False}
+            'password': {'write_only': True},
+            # If you still have password_digest in model, we can ignore it
+            'password_digest': {'read_only': True} 
         }
+
+    # 1. HANDLE SIGNUP (Create)
+    def create(self, validated_data):
+        print(f"🔵 CREATING USER: {validated_data.get('email')}")
+        password = validated_data.pop('password', None)
+        
+        # Create instance without saving yet
+        instance = self.Meta.model(**validated_data)
+        
+        if password:
+            instance.set_password(password)
+        
+        instance.save()
+        return instance
+
+    # 2. HANDLE RESET PASSWORD (Update)
+    def update(self, instance, validated_data):
+        print(f"---- UPDATE CALLED FOR USER: {instance.email} ----")
+        
+        # Check if 'password' key exists in the incoming data
+        if 'password' in validated_data:
+            password = validated_data.pop('password')
+            print(f"🔵 PASSWORD FOUND! Updating...")
+            instance.set_password(password)
+        else:
+            print("🔴 NO PASSWORD KEY FOUND in validated_data.")
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        print("---- SAVE COMPLETE ----")
+        return instance
+
+# ==========================================
+# 4. USER PRODUCT SERIALIZER
+# ==========================================
 
 class UserProductSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
