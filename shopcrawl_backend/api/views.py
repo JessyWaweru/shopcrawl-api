@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters  # <--- Imported filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
@@ -33,13 +33,17 @@ class ShopifyViewSet(viewsets.ModelViewSet):
     serializer_class = ShopifySerializer
 
 # ==========================================
-# PRODUCT VIEWSET
+# PRODUCT VIEWSET (With Search Enabled)
 # ==========================================
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [AllowAny] 
+
+    # --- ENABLE SEARCH ---
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'description'] 
 
 # ==========================================
 # USER VIEWSET
@@ -88,7 +92,7 @@ def search_history(request):
         return Response({"message": "Added to history"})
 
 # ==========================================
-# LOGIN FUNCTION (THE FIX)
+# LOGIN FUNCTION (Secure Version)
 # ==========================================
 
 @api_view(['POST'])
