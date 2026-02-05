@@ -2,20 +2,25 @@
 
 > **Smart Shopping Starts Here.**
 > An AI-powered store comparison engine that aggregates real-time pricing from Amazon, Jumia, Kilimall, and Shopify to help users find the best deals instantly.
+---
+### 📸 Application Screenshots
 
-![DESKTOP HOME](screenshots/Shopcrawl-home-screenshot-l.png)
+#### 🏠 Home Page
+| Desktop | Mobile |
+|:---:|:---:|
+| ![Desktop Home](screenshots/Shopcrawl-home-screenshot-l.png) | ![Mobile Home](screenshots/shopcrawl-home-screenshot-m.png) |
 
-![MOBILE HOME](screenshots/shopcrawl-home-screenshot-m.png)
+#### 🔐 Authentication
+| Desktop Login | Mobile Login |
+|:---:|:---:|
+| ![Desktop Login](screenshots/shopcrawl-login-screenshot-l.png) | ![Mobile Login](screenshots/shopcrawl-login-screenshot-m.png) |
 
-![DESKTOP LOGIN](screenshots/shopcrawl-login-screenshot-l.png)
+#### 🔍 Product Search
+| Desktop Results | Mobile Results |
+|:---:|:---:|
+| ![Desktop Search 1](screenshots/shopcrawl-productsearch-screenshot-1-l.png) <br> ![Desktop Search 2](screenshots/shopcrawl-productsearch-screenshot-2-l.png) | ![Mobile Search](screenshots/shopcrawl-productsearch-screenshot-m.png) |
 
-![MOBILE LOGIN](screenshots/shopcrawl-login-screenshot-m.png)
-
-![DESKTOP PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-1-l.png)
-
-![DESKTOP PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-2-l.png)
-
-![MOBILE PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-m.png)
+---
 
 
 
