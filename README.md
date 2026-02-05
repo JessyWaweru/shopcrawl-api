@@ -146,6 +146,9 @@ python manage.py test -v 2
 **JESSY BRYAN WAWERU**
 *Full Stack Developer*
 
-* 📧 [Contact](+254703261126)
+* 📧 CONTACT
+```
++254703261126
+```
 
 ---
