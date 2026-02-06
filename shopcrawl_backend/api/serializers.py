@@ -185,6 +185,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     # 1. HANDLE SIGNUP (Create)
     def create(self, validated_data):
+        
+        # Overriding the default create method to hash the password correctly.
+        # Standard serializers save raw passwords if not handled explicitly.
+        
         print(f"🔵 CREATING USER: {validated_data.get('email')}")
         password = validated_data.pop('password', None)
         

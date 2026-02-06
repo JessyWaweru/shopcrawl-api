@@ -37,6 +37,11 @@ class ShopifyViewSet(viewsets.ModelViewSet):
 # ==========================================
 
 class ProductViewSet(viewsets.ModelViewSet):
+    
+    #API endpoint for viewing and searching products.
+    #SEARCH LOGIC: Uses Django REST Framework's SearchFilter to allow 
+    #querying via '?search=keyword' on name and description fields.
+    
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [AllowAny] 
