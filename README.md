@@ -2,20 +2,25 @@
 
 > **Smart Shopping Starts Here.**
 > An AI-powered store comparison engine that aggregates real-time pricing from Amazon, Jumia, Kilimall, and Shopify to help users find the best deals instantly.
+---
+### 📸 Application Screenshots
 
-![DESKTOP HOME](screenshots/Shopcrawl-home-screenshot-l.png)
+#### 🏠 Home Page
+| Desktop | Mobile |
+|:---:|:---:|
+| ![Desktop Home](screenshots/Shopcrawl-home-screenshot-l.png) | ![Mobile Home](screenshots/shopcrawl-home-screenshot-m.png) |
 
-![MOBILE HOME](screenshots/shopcrawl-home-screenshot-m.png)
+#### 🔐 Authentication
+| Desktop Login | Mobile Login |
+|:---:|:---:|
+| ![Desktop Login](screenshots/shopcrawl-login-screenshot-l.png) | ![Mobile Login](screenshots/shopcrawl-login-screenshot-m.png) |
 
-![DESKTOP LOGIN](screenshots/shopcrawl-login-screenshot-l.png)
+#### 🔍 Product Search
+| Desktop Results | Mobile Results |
+|:---:|:---:|
+| ![Desktop Search 1](screenshots/shopcrawl-productsearch-screenshot-1-l.png) <br> ![Desktop Search 2](screenshots/shopcrawl-productsearch-screenshot-2-l.png) | ![Mobile Search](screenshots/shopcrawl-productsearch-screenshot-m.png) |
 
-![MOBILE LOGIN](screenshots/shopcrawl-login-screenshot-m.png)
-
-![DESKTOP PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-1-l.png)
-
-![DESKTOP PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-2-l.png)
-
-![MOBILE PRODUCTSEARCH](screenshots/shopcrawl-productsearch-screenshot-m.png)
+---
 
 
 
@@ -109,17 +114,19 @@ python manage.py runserver
 ```
 
 ### 2. Frontend Setup
-Open a new terminal window:
+This project uses a separate repository for the frontend.
 
-```bash
-cd shopcrawl/client
+1.  Clone the frontend repository:
+    ```bash
+    git clone [https://github.com/JessyWaweru/SHOPCRAWL-FRONTEND.git](https://github.com/JessyWaweru/SHOPCRAWL-FRONTEND.git)
+    cd SHOPCRAWL-FRONTEND
+    ```
 
-# Install Node modules
-npm install
-
-# Start the React app
-npm start
-```
+2.  Install dependencies and start:
+    ```bash
+    npm install
+    npm start
+    ```
 ## 🧪 Running Tests
 This project maintains high code quality through automated integration tests covering Authentication (Signup/Login flow) and Product Search functionality.
 
@@ -144,6 +151,9 @@ python manage.py test -v 2
 **JESSY BRYAN WAWERU**
 *Full Stack Developer*
 
-* 📧 [Contact](+254703261126)
+* 📧 CONTACT
+```
++254703261126
+```
 
 ---
