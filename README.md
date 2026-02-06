@@ -20,6 +20,10 @@
 |:---:|:---:|
 | ![Desktop Search 1](screenshots/shopcrawl-productsearch-screenshot-1-l.png) <br> ![Desktop Search 2](screenshots/shopcrawl-productsearch-screenshot-2-l.png) | ![Mobile Search](screenshots/shopcrawl-productsearch-screenshot-m.png) |
 
+#### 🏆 SmartRank™ Analysis
+| Desktop Comparison | Mobile View |
+|:---:|:---:|
+| ![Desktop SmartRank 1](screenshots/shopcrawl-smartrank-screenshot-1-l.jpg) <br> <br> ![Desktop SmartRank 2](screenshots/shopcrawl-smartrank-screenshot-2-l.jpg) | ![Mobile Product](screenshots/shopcrawl-smartrank-screenshot-1-m.png) <br> <br> ![Mobile Comparison](screenshots/shopcrawl-smartrank-screenshot-2-m.png) |
 ---
 
 
