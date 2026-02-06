@@ -87,31 +87,23 @@ WSGI_APPLICATION = 'shopcrawl_backend.wsgi.application'
 
 
 # ==============================================================================
-# DATABASE CONFIGURATION (HYBRID: LOCAL & PRODUCTION)
+# DATABASE CONFIGURATION
 # ==============================================================================
-
-# Logic:
-# 1. Capture the configuration from the environment (Production)
 
 db_config = dj_database_url.config(
     default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
     conn_max_age=0
 )
-# 2. FIX: Disable Server-Side Cursors (Required for Port 6543/Transaction Mode)
-# This prevents the 30s hang where Django waits for a feature the Pooler doesn't have.
-db_config['DISABLE_SERVER_SIDE_CURSORS'] = True
-# 3. FORCE the timeout option
-# This is the FIX for the 30-second delay. It forces the driver to fail fast if IPv6 hangs.
+
+# Force IPv6 Timeout (Fail fast if IPv6 hangs)
 if 'OPTIONS' not in db_config:
     db_config['OPTIONS'] = {}
 
 db_config['OPTIONS']['connect_timeout'] = 5
 
-# 4. Apply to Django
 DATABASES = {
     'default': db_config
 }
-
 
 # ==============================================================================
 # PASSWORD VALIDATION
