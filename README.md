@@ -23,7 +23,7 @@
 #### 🏆 SmartRank™ Analysis
 | Desktop Comparison | Mobile View |
 |:---:|:---:|
-| ![Desktop SmartRank 1](screenshots/shopcrawl-smartrank-screenshot-1-l.jpg) <br> <br> ![Desktop SmartRank 2](screenshots/shopcrawl-smartrank-screenshot-2-l.jpg) | ![Mobile Product](screenshots/shopcrawl-smartrank-screenshot-1-m.png) <br> <br> ![Mobile Comparison](screenshots/shopcrawl-smartrank-screenshot-2-m.png) |
+| ![Desktop SmartRank 1](screenshots/shopcrawl-smartrank-screenshot-1-l.png) <br> <br> ![Desktop SmartRank 2](screenshots/shopcrawl-smartrank-screenshot-2-l.png) | ![Mobile Product](screenshots/shopcrawl-smartrank-screenshot-1-m.png) <br> <br> ![Mobile Comparison](screenshots/shopcrawl-smartrank-screenshot-2-m.png) |
 ---
 
 
