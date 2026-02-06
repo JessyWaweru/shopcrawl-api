@@ -11,24 +11,37 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url  # Needed for Render database connection
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==============================================================================
+# SECURITY CONFIGURATION
+# ==============================================================================
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# 1. SECRET KEY
+# In production, this looks for an environment variable named 'SECRET_KEY'.
+# If not found (like on localhost), it falls back to the insecure key.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-w7rwr1ej7k5aw85a@9nabbwih3f)6k!x_0%3&4e&se^wpi_kla')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w7rwr1ej7k5aw85a@9nabbwih3f)6k!x_0%3&4e&se^wpi_kla'
+# 2. DEBUG MODE
+# Automatically sets DEBUG to False if we are on Render.
+# 'RENDER' is an env var automatically set by the Render platform.
+DEBUG = 'RENDER' not in os.environ
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 3. ALLOWED HOSTS
+# Always allow localhost. If on Render, add the provided hostname.
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-ALLOWED_HOSTS = []
 
-
-# Application definition
+# ==============================================================================
+# APPLICATIONS & MIDDLEWARE
+# ==============================================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -37,14 +50,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework', # You should have this for the API
-    'api',            # <--- ADD THIS LINE
-    'corsheaders',  
+    
+    # Third Party Apps
+    'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
+    
+    # Local Apps
+    'api',
 ]
+
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # For handling CORS
+    'corsheaders.middleware.CorsMiddleware',            # CORS must be first!
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',       # Static file handling for Production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -73,75 +92,67 @@ TEMPLATES = [
 WSGI_APPLICATION = 'shopcrawl_backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# ==============================================================================
+# DATABASE CONFIGURATION (HYBRID: LOCAL & PRODUCTION)
+# ==============================================================================
+
+# Logic:
+# 1. If 'DATABASE_URL' is found (Production/Supabase), use it.
+# 2. If not found (Localhost), use 'db.sqlite3'.
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        conn_max_age=600
+    )
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# ==============================================================================
+# PASSWORD VALIDATION
+# ==============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# ==============================================================================
+# INTERNATIONALIZATION & TIME
+# ==============================================================================
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# ==============================================================================
+# STATIC FILES (CSS, JS, IMAGES)
+# ==============================================================================
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# This ensures static files (like Admin CSS) work on Render
+if not DEBUG:
+    # Tell Django where to collect static files during build
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Enable simplified static file serving via Whitenoise
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
+# ==============================================================================
+# CUSTOM AUTH & API SETTINGS
+# ==============================================================================
+
+# Use Custom User Model
+AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
-
-
-from corsheaders.defaults import default_headers
-
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'authorization',  # <--- You MUST explicitly allow this header
-    'content-type',
-]
-
-# Tell Django to use your custom User model instead of the default one
-AUTH_USER_MODEL = 'api.User'
-
-# Add this to the very bottom of settings.py
-
+# REST Framework Config
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -150,3 +161,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
 }
+
+# CORS Config (Allow Frontend to talk to Backend)
+# For production, allowing all origins is easiest for a portfolio.
+# If you want stricter security later, replace True with a list of domains.
+CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_CREDENTIALS = True
+
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'authorization',
+    'content-type',
+]
