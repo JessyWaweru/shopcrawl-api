@@ -95,8 +95,8 @@ Follow these instructions to set up the project locally on your machine.
 ### 1. Backend Setup
 ```bash
 # Clone the repository
-git clone [https://github.com/YOUR_USERNAME/shopcrawl.git](https://github.com/YOUR_USERNAME/shopcrawl.git)
-cd shopcrawl/backend
+git clone [https://github.com/JessyWaweru/SHOPCRAWL-BACKEND-PY.git](https://github.com/JessyWaweru/SHOPCRAWL-BACKEND-PY.git])
+cd SHOPCRAWL-BACKEND-PY
 
 # Create a virtual environment
 python -m venv venv
