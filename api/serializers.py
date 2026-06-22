@@ -4,6 +4,7 @@ from .models import Amazon, Jumia, Kilimall, Shopify, Product, User, UserProduct
 # ==========================================
 # 1. VENDOR SERIALIZERS
 # ==========================================
+# (These automatically pick up the new coefficient_of_variation field thanks to '__all__')
 
 class AmazonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -70,6 +71,9 @@ class ProductSerializer(serializers.ModelSerializer):
             'jumia_price', 'jumia_shipping', 'jumia_days', 'jumia_location', 'jumia_reviews',
             'kilimall_price', 'kilimall_shipping', 'kilimall_days', 'kilimall_location', 'kilimall_reviews',
             'shopify_price', 'shopify_shipping', 'shopify_days', 'shopify_location', 'shopify_reviews',
+            
+            # --- NEW ACTUARIAL FIELDS FOR FRONTEND UI ---
+            'expected_value', 'variance_penalty', 'risk_adjusted_score', 'var_95'
         ]
 
     # --- GET DATA HELPERS ---
@@ -81,7 +85,9 @@ class ProductSerializer(serializers.ModelSerializer):
                 "rating": getattr(vendor, 'review', 0.0),
                 "shipping_cost": getattr(vendor, 'shipping_cost', 0.0),
                 "shipping_days": getattr(vendor, 'days_to_ship', 7),
-                "location": getattr(vendor, 'product_location', "Unknown")
+                "location": getattr(vendor, 'product_location', "Unknown"),
+                # Include the Volatility Indicator
+                "coefficient_of_variation": getattr(vendor, 'coefficient_of_variation', 0.0) 
             }
         return None
 

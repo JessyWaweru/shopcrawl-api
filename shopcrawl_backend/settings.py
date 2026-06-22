@@ -95,16 +95,16 @@ db_config = dj_database_url.config(
     conn_max_age=0
 )
 
-# Force IPv6 Timeout (Fail fast if IPv6 hangs)
-if 'OPTIONS' not in db_config:
-    db_config['OPTIONS'] = {}
-
-db_config['OPTIONS']['connect_timeout'] = 5
+# Only apply the network connect_timeout if we are actually using PostgreSQL (Production).
+# SQLite will crash if you pass connect_timeout to it.
+if 'postgresql' in db_config.get('ENGINE', ''):
+    if 'OPTIONS' not in db_config:
+        db_config['OPTIONS'] = {}
+    db_config['OPTIONS']['connect_timeout'] = 5
 
 DATABASES = {
     'default': db_config
 }
-
 # ==============================================================================
 # PASSWORD VALIDATION
 # ==============================================================================

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, filters  # <--- Imported filters
+from rest_framework import viewsets, status, filters  # <--- filters used for Search and Ordering
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
@@ -33,22 +33,28 @@ class ShopifyViewSet(viewsets.ModelViewSet):
     serializer_class = ShopifySerializer
 
 # ==========================================
-# PRODUCT VIEWSET (With Search Enabled)
+# PRODUCT VIEWSET (With Search & SmartRank™)
 # ==========================================
 
 class ProductViewSet(viewsets.ModelViewSet):
     
-    #API endpoint for viewing and searching products.
-    #SEARCH LOGIC: Uses Django REST Framework's SearchFilter to allow 
-    #querying via '?search=keyword' on name and description fields.
+    # API endpoint for viewing, searching, and sorting products.
+    # DEFAULT SORTING: Uses the Actuarial SmartRank™ (risk_adjusted_score) descending.
+    # SEARCH LOGIC: Uses Django REST Framework's SearchFilter to allow 
+    # querying via '?search=keyword' on name and description fields.
     
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [AllowAny] 
 
-    # --- ENABLE SEARCH ---
-    filter_backends = [filters.SearchFilter]
+    # --- ENABLE SEARCH & ORDERING ---
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description'] 
+    
+    # Enable the API to accept ordering queries if the frontend wants to override,
+    # but set the default ordering to our new actuarial score.
+    ordering_fields = ['risk_adjusted_score', 'expected_value', 'name']
+    ordering = ['-risk_adjusted_score']  # The '-' means descending order (highest score first)
 
 # ==========================================
 # USER VIEWSET

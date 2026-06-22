@@ -23,6 +23,7 @@ class User(AbstractUser):
 # ==========================================
 # VENDOR MODELS
 # ==========================================
+# Added coefficient_of_variation to each for the Price Risk / Volatility Indicator
 
 class Amazon(models.Model):
     link = models.URLField(default="https://amazon.com")
@@ -31,6 +32,9 @@ class Amazon(models.Model):
     days_to_ship = models.IntegerField(default=7) 
     review = models.DecimalField(max_digits=3, decimal_places=1, default=4.0) 
     product_location = models.CharField(max_length=100, default="Warehouse")
+    
+    # --- NEW ACTUARIAL FIELD ---
+    coefficient_of_variation = models.FloatField(default=0.0, help_text="Volatility indicator (CV) for this vendor")
 
     def __str__(self):
         return f"Amazon: {self.price}"
@@ -42,6 +46,9 @@ class Jumia(models.Model):
     days_to_ship = models.IntegerField(default=7)
     review = models.DecimalField(max_digits=3, decimal_places=1, default=4.0)
     product_location = models.CharField(max_length=100, default="Warehouse")
+    
+    # --- NEW ACTUARIAL FIELD ---
+    coefficient_of_variation = models.FloatField(default=0.0, help_text="Volatility indicator (CV) for this vendor")
 
     def __str__(self):
         return f"Jumia: {self.price}"
@@ -54,6 +61,9 @@ class Kilimall(models.Model):
     review = models.DecimalField(max_digits=3, decimal_places=1, default=4.0)
     product_location = models.CharField(max_length=100, default="Warehouse")
 
+    # --- NEW ACTUARIAL FIELD ---
+    coefficient_of_variation = models.FloatField(default=0.0, help_text="Volatility indicator (CV) for this vendor")
+
     def __str__(self):
         return f"Kilimall: {self.price}"
 
@@ -64,6 +74,9 @@ class Shopify(models.Model):
     days_to_ship = models.IntegerField(default=7)
     review = models.DecimalField(max_digits=3, decimal_places=1, default=4.0)
     product_location = models.CharField(max_length=100, default="Warehouse")
+
+    # --- NEW ACTUARIAL FIELD ---
+    coefficient_of_variation = models.FloatField(default=0.0, help_text="Volatility indicator (CV) for this vendor")
 
     def __str__(self):
         return f"Shopify: {self.price}"
@@ -90,6 +103,12 @@ class Product(models.Model):
     kilimall = models.OneToOneField(Kilimall, on_delete=models.SET_NULL, null=True, blank=True)
     shopify = models.OneToOneField(Shopify, on_delete=models.SET_NULL, null=True, blank=True)
 
+    # --- NEW ACTUARIAL FIELDS FOR SMARTRANK™ ---
+    expected_value = models.FloatField(default=0.0, help_text="Expected mean value across vendors/history")
+    variance_penalty = models.FloatField(default=0.0, help_text="Penalty applied based on price variance")
+    risk_adjusted_score = models.FloatField(default=0.0, help_text="SmartRank Score: Expected Value - Variance Penalty")
+    var_95 = models.FloatField(default=0.0, help_text="95% Confidence Value-at-Risk")
+
     def __str__(self):
         return self.name
 
@@ -104,4 +123,3 @@ class UserProduct(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
-    
