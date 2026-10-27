@@ -89,3 +89,62 @@ class ProductSearchTests(APITestCase):
         response = self.client.get(url, {'search': 'toaster'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
+
+# ==========================================
+# 3. SECURITY TESTS
+# ==========================================
+class SecurityTests(APITestCase):
+
+    def setUp(self):
+        self.client.post(reverse('user-list'), {
+            'username': 'alice@test.com', 'email': 'alice@test.com',
+            'password': 'StrongPassword1!', 'recovery_pin': '4321',
+        }, format='json')
+        self.alice = User.objects.get(email='alice@test.com')
+        self.bob = User.objects.create_user(username='bob@test.com', email='bob@test.com', password='BobPassword1!')
+
+    def test_signup_cannot_self_grant_admin(self):
+        self.client.post(reverse('user-list'), {
+            'username': 'eve@test.com', 'email': 'eve@test.com',
+            'password': 'StrongPassword1!', 'admin': True, 'admin_code': 'secret123',
+        }, format='json')
+        self.assertFalse(User.objects.get(email='eve@test.com').admin)
+
+    def test_recovery_pin_is_hashed_and_hidden(self):
+        self.assertNotEqual(self.alice.recovery_pin, '4321')
+        self.client.force_authenticate(self.alice)
+        response = self.client.get(reverse('user-detail', args=[self.alice.id]))
+        self.assertNotIn('recovery_pin', response.data)
+
+    def test_user_list_is_not_public(self):
+        response = self.client.get(reverse('user-list'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_cannot_edit_another_user(self):
+        self.client.force_authenticate(self.bob)
+        response = self.client.patch(reverse('user-detail', args=[self.alice.id]), {'password': 'hacked'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_only_admins_can_change_products(self):
+        response = self.client.post(reverse('product-list'), {'name': 'Fake'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.client.force_authenticate(self.bob)
+        response = self.client.post(reverse('product-list'), {'name': 'Fake'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_reset_password_with_pin(self):
+        url = reverse('reset_password')
+        bad = self.client.post(url, {'email': 'alice@test.com', 'recovery_pin': '0000', 'password': 'New1!'}, format='json')
+        self.assertEqual(bad.status_code, status.HTTP_400_BAD_REQUEST)
+        good = self.client.post(url, {'email': 'alice@test.com', 'recovery_pin': '4321', 'password': 'NewPassword1!'}, format='json')
+        self.assertEqual(good.status_code, status.HTTP_200_OK)
+        self.alice.refresh_from_db()
+        self.assertTrue(self.alice.check_password('NewPassword1!'))
+
+    def test_legacy_plaintext_pin_still_works_and_gets_hashed(self):
+        User.objects.filter(pk=self.bob.pk).update(recovery_pin='9999')
+        response = self.client.post(reverse('reset_password'),
+                                    {'email': 'bob@test.com', 'recovery_pin': '9999', 'password': 'NewPassword1!'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.bob.refresh_from_db()
+        self.assertNotEqual(self.bob.recovery_pin, '9999')

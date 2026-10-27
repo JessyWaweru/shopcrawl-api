@@ -14,8 +14,8 @@ class User(AbstractUser):
     admin = models.BooleanField(default=False)
 
     # --- NEW FIELD: REQUIRED FOR PASSWORD RESET ---
-    # This stores the "Shared Secret" (e.g., "1234")
-    recovery_pin = models.CharField(max_length=10, null=True, blank=True)
+    # Stores a hash of the user's "Shared Secret" PIN, never the PIN itself
+    recovery_pin = models.CharField(max_length=128, null=True, blank=True)
 
     def __str__(self):
         return self.username

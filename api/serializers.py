@@ -1,3 +1,7 @@
+import os
+
+from django.contrib.auth.hashers import make_password
+from django.utils.crypto import constant_time_compare
 from rest_framework import serializers
 from .models import Amazon, Jumia, Kilimall, Shopify, Product, User, UserProduct
 
@@ -180,52 +184,54 @@ class ProductSerializer(serializers.ModelSerializer):
 # ==========================================
 
 class UserSerializer(serializers.ModelSerializer):
+    # Admin rights are decided here on the server, never trusted from the client.
+    admin_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'age', 'admin', 'recovery_pin']
+        fields = ['id', 'username', 'email', 'password', 'age', 'admin', 'recovery_pin', 'admin_code']
         extra_kwargs = {
             'password': {'write_only': True},
-            # If you still have password_digest in model, we can ignore it
-            'password_digest': {'read_only': True} 
+            'recovery_pin': {'write_only': True},
+            'admin': {'read_only': True},
         }
 
     # 1. HANDLE SIGNUP (Create)
     def create(self, validated_data):
-        
-        # Overriding the default create method to hash the password correctly.
-        # Standard serializers save raw passwords if not handled explicitly.
-        
-        print(f"🔵 CREATING USER: {validated_data.get('email')}")
+        admin_code = validated_data.pop('admin_code', '')
         password = validated_data.pop('password', None)
-        
-        # Create instance without saving yet
+        pin = validated_data.pop('recovery_pin', None)
+
         instance = self.Meta.model(**validated_data)
-        
+        instance.admin = admin_code_is_valid(admin_code)
         if password:
             instance.set_password(password)
-        
+        if pin:
+            instance.recovery_pin = make_password(pin)
+
         instance.save()
         return instance
 
-    # 2. HANDLE RESET PASSWORD (Update)
+    # 2. HANDLE PROFILE UPDATES (Update)
     def update(self, instance, validated_data):
-        print(f"---- UPDATE CALLED FOR USER: {instance.email} ----")
-        
-        # Check if 'password' key exists in the incoming data
-        if 'password' in validated_data:
-            password = validated_data.pop('password')
-            print(f"🔵 PASSWORD FOUND! Updating...")
-            instance.set_password(password)
-        else:
-            print("🔴 NO PASSWORD KEY FOUND in validated_data.")
+        validated_data.pop('admin_code', None)
 
-        # Update other fields
+        if 'password' in validated_data:
+            instance.set_password(validated_data.pop('password'))
+        if 'recovery_pin' in validated_data:
+            instance.recovery_pin = make_password(validated_data.pop('recovery_pin'))
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
-        print("---- SAVE COMPLETE ----")
         return instance
+
+
+def admin_code_is_valid(code):
+    expected = os.environ.get('ADMIN_SIGNUP_CODE', '')
+    return bool(expected and code) and constant_time_compare(code, expected)
+
 
 # ==========================================
 # 4. USER PRODUCT SERIALIZER

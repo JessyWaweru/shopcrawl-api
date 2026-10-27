@@ -12,7 +12,7 @@ python manage.py collectstatic --no-input
 python manage.py migrate
 
 # 4. Load Data (This imports your products from the file)
-# Note: Ensure you pushed datadump.json to GitHub!
+# Products-only fixture: never put user accounts in here.
 if [ -f "datadump.json" ]; then
     echo "Loading data from datadump.json..."
     python manage.py loaddata datadump.json

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AmazonViewSet, JumiaViewSet, KilimallViewSet, ShopifyViewSet, 
     ProductViewSet, UserViewSet, 
-    login_user, search_history  # <--- IMPORTED search_history
+    login_user, search_history, reset_password
 )
 
 router = DefaultRouter()
@@ -18,6 +18,9 @@ urlpatterns = [
     # 1. SPECIFIC ROUTES FIRST
     # Login Route
     path('login/', login_user, name='login_user'),
+
+    # Password Reset Route (Recovery PIN)
+    path('reset-password/', reset_password, name='reset_password'),
 
     # Search History Route (New)
     path('history/', search_history, name='search_history'),

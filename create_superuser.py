@@ -9,13 +9,20 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# Change these to whatever you want your Live Admin login to be
-USERNAME = "admin"
-EMAIL = "admin@example.com"
-PASSWORD = "complexpassword123" 
+# Live admin login comes from environment variables (set them in the Render dashboard).
+USERNAME = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")
+EMAIL = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@example.com")
+PASSWORD = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
 
-if not User.objects.filter(username=USERNAME).exists():
-    print(f"Creating superuser: {USERNAME}")
-    User.objects.create_superuser(USERNAME, EMAIL, PASSWORD)
+if not PASSWORD:
+    print("DJANGO_SUPERUSER_PASSWORD not set; skipping superuser setup.")
 else:
-    print(f"Superuser {USERNAME} already exists.")
+    user = User.objects.filter(username=USERNAME).first()
+    if user is None:
+        print(f"Creating superuser: {USERNAME}")
+        User.objects.create_superuser(USERNAME, EMAIL, PASSWORD)
+    else:
+        # Keeps the live password in sync with the environment variable.
+        print(f"Superuser {USERNAME} exists; syncing password.")
+        user.set_password(PASSWORD)
+        user.save()
