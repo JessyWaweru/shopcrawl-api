@@ -1,163 +1,120 @@
-# 🛍️ Shopcrawl
+<div align="center">
 
-> **Smart Shopping Starts Here.**
-> An AI-powered store comparison engine that aggregates real-time pricing from Amazon, Jumia, Kilimall, and Shopify to help users find the best deals instantly.
+# 🛍️ ShopCrawl
+
+### Four stores. One search. Zero open tabs.
+
+**A price-comparison engine that ranks Amazon, Jumia, Kilimall and Shopify offers by what you actually pay, not just the sticker price.**
+
+[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-shopcrawl.onrender.com-e11d48?style=for-the-badge)](https://shopcrawl.onrender.com/)
+[![Frontend](https://img.shields.io/badge/Frontend_Repo-shopcrawl--web-0f172a?style=for-the-badge&logo=github)](https://github.com/JessyWaweru/shopcrawl-web)
+
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django_5-092E20?logo=django&logoColor=white)
+![DRF](https://img.shields.io/badge/DRF-A30000?logo=django&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?logo=tailwindcss&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?logo=render&logoColor=black)
+
+<sub>⏳ Free-tier hosting: the first request may take ~45s while the server wakes up. Worth the wait, promise.</sub>
+
+</div>
+
 ---
-### 📸 Application Screenshots
 
-#### 🏠 Home Page
-| Desktop | Mobile |
+## 🤔 The problem
+
+Shopping online in Kenya means juggling Jumia, Kilimall and Amazon in separate tabs, then doing mental maths on shipping fees, delivery times and whether that "4.1-star" seller is legit.
+
+**ShopCrawl does the maths for you.** Search once, then let **SmartRank™** tell you which store is the best deal overall.
+
+## 🧮 SmartRank™: an actuary's take on "best deal"
+
+I studied Actuarial Science, so "cheapest" was never going to be the whole story. SmartRank scores every store on three weighted factors:
+
+| Factor | Weight | How it's scored |
+|---|:---:|---|
+| 💰 **Total cost** (price + shipping) | 45% | `cheapest_total / store_total × 100` |
+| ⭐ **Trust** (store rating /10) | 35% | `rating / 10 × 100` |
+| 🚚 **Speed** (delivery days) | 20% | `fastest_days / store_days × 100` |
+
+…and then a **20% risk penalty** for any store rated below 6/10, because a cheap item that never arrives isn't cheap.
+
+On the backend, every product also carries an `expected_value` and a `risk_adjusted_score` (*expected value minus a variance penalty*), and the API returns products sorted by that score by default.
+
+## 📸 Screenshots
+
+| 🏠 Home | 🏆 SmartRank |
 |:---:|:---:|
-| ![Desktop Home](screenshots/Shopcrawl-home-screenshot-l.png) | ![Mobile Home](screenshots/shopcrawl-home-screenshot-m.png) |
+| ![Home](screenshots/Shopcrawl-home-screenshot-l.png) | ![SmartRank](screenshots/shopcrawl-smartrank-screenshot-1-l.png) |
+| 🔍 **Search** | 📱 **Mobile** |
+| ![Search](screenshots/shopcrawl-productsearch-screenshot-1-l.png) | ![Mobile](screenshots/shopcrawl-smartrank-screenshot-1-m.png) |
 
-#### 🔐 Authentication
-| Desktop Login | Mobile Login |
-|:---:|:---:|
-| ![Desktop Login](screenshots/shopcrawl-login-screenshot-l.png) | ![Mobile Login](screenshots/shopcrawl-login-screenshot-m.png) |
+## ✨ Features
 
-#### 🔍 Product Search
-| Desktop Results | Mobile Results |
-|:---:|:---:|
-| ![Desktop Search 1](screenshots/shopcrawl-productsearch-screenshot-1-l.png) <br> ![Desktop Search 2](screenshots/shopcrawl-productsearch-screenshot-2-l.png) | ![Mobile Search](screenshots/shopcrawl-productsearch-screenshot-m.png) |
+- 🔍 **Multi-vendor search**: one query across four stores (`?search=iphone`)
+- 🏆 **Risk-adjusted ranking**: products ordered by `risk_adjusted_score` out of the box
+- 🔐 **Token auth**: email-based login, PBKDF2-hashed passwords, PIN-based password recovery
+- 📜 **Recently viewed**: the last 11 products you opened, de-duplicated automatically
+- 📱 **Mobile-first UI**: React + Tailwind, with toast feedback on every action
 
-#### 🏆 SmartRank™ Analysis
-| Desktop Comparison | Mobile View |
-|:---:|:---:|
-| ![Desktop SmartRank 1](screenshots/shopcrawl-smartrank-screenshot-1-l.png) <br> <br> ![Desktop SmartRank 2](screenshots/shopcrawl-smartrank-screenshot-2-l.png) | ![Mobile Product](screenshots/shopcrawl-smartrank-screenshot-1-m.png) <br> <br> ![Mobile Comparison](screenshots/shopcrawl-smartrank-screenshot-2-m.png) |
----
+## 🏗️ Architecture
 
+```
+┌──────────────────┐   REST / JSON   ┌───────────────────────┐      ┌──────────────┐
+│  shopcrawl-web   │ ──────────────▶ │    shopcrawl-api      │ ───▶ │  PostgreSQL  │
+│  React+Tailwind  │ ◀────────────── │  Django REST Framework │      │  (SQLite dev)│
+└──────────────────┘   Token auth    └───────────────────────┘      └──────────────┘
+        Render                         Gunicorn + WhiteNoise
+```
 
+## 📡 API at a glance
 
-## 📋 Table of Contents
-- [About](#-about)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Getting Started](#-getting-started)
-- [Running Tests](#-running-tests)
-- [API Documentation](#-api-documentation)
-- [Author](#-author)
+| Method | Endpoint | What it does | Access |
+|:---:|---|---|:---:|
+| `GET` | `/api/products/?search=…&ordering=…` | Search & rank products | 🌍 |
+| `POST` | `/api/users/` | Sign up | 🌍 |
+| `POST` | `/api/login/` | Log in, get a token | 🌍 |
+| `POST` | `/api/reset-password/` | Reset with your recovery PIN (rate-limited) | 🌍 |
+| `GET` `PATCH` | `/api/users/{id}/` | Your own profile only | 🔐 |
+| `GET` `POST` | `/api/history/` | Read / add recently viewed | 🔐 |
+| `POST` `PUT` `DELETE` | `/api/products/…` | Manage the catalogue | 🛡️ admin |
 
----
+## 🔒 Security notes
 
-## 📖 About
-**Shopcrawl** addresses the fragmentation of e-commerce in Kenya and beyond. Instead of opening four different tabs to check prices on Jumia, Kilimall, or Amazon, Shopcrawl provides a unified search engine. It features a secure authentication system, search history tracking, and a responsive, mobile-first design.
+- Passwords **and** recovery PINs are hashed; neither ever leaves the server
+- Admin rights are granted server-side (`ADMIN_SIGNUP_CODE` env var), never trusted from the client
+- Users can only read or edit their own account; the catalogue is read-only unless you're an admin
+- Login and reset errors are deliberately vague, so they don't reveal which emails are registered
 
----
+## 🚀 Run it locally
 
-## 🚀 Key Features
-* **🔍 Multi-Vendor Search:** Aggregates and compares products from Amazon, Jumia, Kilimall, and Shopify in a single view.
-* **🔐 Secure Authentication:** Custom email-based login system with PBKDF2 password hashing and Token-based authentication.
-* **🛡️ Admin Privileges:** Secret code registration system (`secret123`) to grant administrative access securely.
-* **📜 Search History:** Tracks and displays the last 11 viewed items for signed-in users.
-* **📱 Mobile-First UI:** Fully responsive design built with Tailwind CSS, ensuring a seamless experience on phones and desktops.
-* **⚡ Real-Time Feedback:** Interactive UI with toast notifications for success/error states.
-
----
-
-## 🛠 Tech Stack
-
-### **Frontend**
-* **React.js** (v18) - Component-based UI architecture.
-* **Tailwind CSS** - Utility-first styling for rapid, responsive design.
-* **React Router** - Single Page Application (SPA) navigation.
-* **FontAwesome** - Vector icons.
-* **Toastify** - User feedback notifications.
-
-### **Backend**
-* **Django REST Framework (DRF)** - Robust API development.
-* **Django ORM** - Database abstraction and management.
-* **Gunicorn** - Production-grade WSGI server.
-* **SQLite** (Dev) / **PostgreSQL** (Prod) - Data persistence.
-
----
-
-## 🏗 Architecture
-The application follows a decoupled **Client-Server Architecture**:
-
-1.  **Client (Frontend):** Handles user interactions, state management (Auth Context), and API consumption via `fetch`.
-2.  **Server (Backend):** Exposes RESTful endpoints (`/api/products`, `/api/login`), handles business logic, and manages the database.
-3.  **Security:** * Passwords are never stored in plain text.
-    * API endpoints are protected via Permissions (`IsAuthenticated`, `AllowAny`).
-    * CORS headers configured for secure cross-origin requests.
-
----
-
-## 🏁 Getting Started
-
-Follow these instructions to set up the project locally on your machine.
-
-### Prerequisites
-* Python 3.8+
-* Node.js & npm
-* Git
-
-### 1. Backend Setup
 ```bash
-# Clone the repository
-git clone [https://github.com/JessyWaweru/SHOPCRAWL-BACKEND-PY.git](https://github.com/JessyWaweru/SHOPCRAWL-BACKEND-PY.git])
-cd SHOPCRAWL-BACKEND-PY
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
-
-# Install dependencies
+git clone https://github.com/JessyWaweru/shopcrawl-api.git
+cd shopcrawl-api
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# Run database migrations
 python manage.py migrate
-
-# Start the Django server
-python manage.py runserver
+python manage.py runserver        # → http://127.0.0.1:8000/api/
 ```
 
-### 2. Frontend Setup
-This project uses a separate repository for the frontend.
+Then start the [frontend](https://github.com/JessyWaweru/shopcrawl-web) with `npm install && npm start`.
 
-1.  Clone the frontend repository:
-    ```bash
-    git clone [https://github.com/JessyWaweru/SHOPCRAWL-FRONTEND.git](https://github.com/JessyWaweru/SHOPCRAWL-FRONTEND.git)
-    cd SHOPCRAWL-FRONTEND
-    ```
+## 🧪 Tests
 
-2.  Install dependencies and start:
-    ```bash
-    npm install
-    npm start
-    ```
-## 🧪 Running Tests
-This project maintains high code quality through automated integration tests covering Authentication (Signup/Login flow) and Product Search functionality.
-
-To run the test suite:
 ```bash
-cd backend
-python manage.py test -v 2
-```
-
-## 📡 API Documentation
-
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/api/users/` | Register a new user | 🌍 Public |
-| **POST** | `/api/login/` | Login & receive Token | 🌍 Public |
-| **GET** | `/api/products/?search=iphone` | Search for products | 🌍 Public |
-| **GET** | `/api/history/` | Get user search history | 🔐 Authenticated |
-| **POST** | `/api/history/` | Add item to history | 🔐 Authenticated |
-
-## 👨‍💻 Author
-
-**JESSY BRYAN WAWERU**
-*Full Stack Developer*
-
-* 📧 CONTACT
-```
-+254703261126
+python manage.py test -v 2        # auth flow + product search
 ```
 
 ---
+
+<div align="center">
+
+**Built by Jessy Bryan Waweru**: actuary by training, full-stack engineer by obsession.
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jessy-waweru-b8051a288)
+[![Email](https://img.shields.io/badge/Email-EA4335?logo=gmail&logoColor=white)](mailto:bryanjessywaweru@gmail.com)
+[![GitHub](https://img.shields.io/badge/More_projects-181717?logo=github)](https://github.com/JessyWaweru)
+
+</div>
