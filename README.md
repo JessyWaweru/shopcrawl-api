@@ -6,7 +6,7 @@
 
 **A price-comparison engine that ranks Amazon, Jumia, Kilimall and Shopify offers by what you actually pay, not just the sticker price.**
 
-[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-shopcrawl.onrender.com-e11d48?style=for-the-badge)](https://shopcrawl.onrender.com/)
+[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-shopcrawl--frontend.onrender.com-e11d48?style=for-the-badge)](https://shopcrawl-frontend.onrender.com/)
 [![Frontend](https://img.shields.io/badge/Frontend_Repo-shopcrawl--web-0f172a?style=for-the-badge&logo=github)](https://github.com/JessyWaweru/shopcrawl-web)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
